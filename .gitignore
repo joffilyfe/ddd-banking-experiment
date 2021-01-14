@@ -1,0 +1,10 @@
+.mypy_cache/
+.venv/
+.vscode/
+*.pyc
+__pycache__/
+*mutmut*
+*.db
+dist/
+*.egg-info
+build/

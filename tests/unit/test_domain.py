@@ -1,6 +1,6 @@
 import unittest
 
-from banking.domain import Person
+from banking.domain import Person, Transaction
 
 
 class TestPersonDomaiin(unittest.TestCase):
@@ -15,3 +15,14 @@ class TestPersonDomaiin(unittest.TestCase):
 
     def test_the_method_new_should_be_static(self):
         self.assertEqual(type(Person.__dict__["new"]), staticmethod)
+
+
+class TestTransactionDomain(unittest.TestCase):
+    def setUp(self):
+        self.transaction = Transaction.new()
+
+    def test_should_create_a_default_instance(self):
+        self.assertEqual(None, self.transaction.id)
+        self.assertEqual(None, self.transaction.account_id)
+        self.assertEqual(None, self.transaction.value)
+        self.assertEqual(None, self.transaction.created_at)

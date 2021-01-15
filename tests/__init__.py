@@ -3,7 +3,7 @@ from decimal import Decimal
 from random import randint
 
 from banking.adapters import metadata, sqlalchemy_schema, start_mappers
-from banking.domain import Person
+from banking.domain import Account, Person
 from sqlalchemy import TypeDecorator, Integer, create_engine
 from sqlalchemy.orm import clear_mappers, sessionmaker
 
@@ -78,3 +78,10 @@ def create_person(id=randint(1, 2000)):
     )
 
     return person
+
+
+def create_account(account_id=randint(1, 2000), person_id=randint(1, 20000)):
+    account = Account.new()
+    account.id = account_id
+    account.person_id = person_id
+    return account

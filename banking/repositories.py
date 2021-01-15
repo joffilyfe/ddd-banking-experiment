@@ -24,3 +24,7 @@ class BaseRepository(interfaces.AbstractRepository):
 
 class PersonRepository(BaseRepository):
     DomainClass = domain.Person
+
+
+class AccountRepository(BaseRepository):
+    DomainClass = domain.Account

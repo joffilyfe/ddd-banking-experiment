@@ -1,5 +1,7 @@
 from decimal import Decimal
 
+from typing import List
+
 from datetime import datetime, date
 from dataclasses import dataclass
 
@@ -32,3 +34,45 @@ class Transaction:
         return Transaction(
             id=id, account_id=account_id, value=value, created_at=created_at
         )
+
+
+class Account:
+    """Responsible to manage operations over the application"""
+
+    def __init__(
+        self,
+        id: int,
+        balance: Decimal,
+        daily_withdrawal_limit: Decimal,
+        active: bool,
+        type: bool,
+        person_id: int,
+        transactions: List[Transaction] = None,
+    ):
+        self.id = id
+        self.balance = balance
+        self.daily_withdrawal_limit = daily_withdrawal_limit
+        self.active = active
+        self.type = type
+        self.person_id: int = person_id
+        self.transactions = [] if transactions is None else transactions
+
+    @staticmethod
+    def new():
+        return Account(
+            id=None,
+            balance=Decimal("0.00"),
+            daily_withdrawal_limit=Decimal("1000.00"),
+            active=True,
+            type=1,
+            person_id=None,
+            transactions=[],
+        )
+
+    def unblock(self) -> None:
+        """Set the active status as True"""
+        self.active = True
+
+    def block(self) -> None:
+        """Set the active status as Talse"""
+        self.active = False

@@ -1,4 +1,5 @@
 from decimal import Decimal
+from decimal import InvalidOperation as DecimalException
 
 from typing import List
 
@@ -76,3 +77,23 @@ class Account:
     def block(self) -> None:
         """Set the active status as Talse"""
         self.active = False
+
+    def deposit(self, value: str) -> None:
+        """Adds an amout to the account balance.
+        It does some minimal validations related to business model like the
+        signal of number or if the value interfaces is a number"""
+
+        try:
+            _value = Decimal(str(value))
+        except (ValueError, DecimalException):
+            raise ValueError(
+                "Could not deposit the amount '%s' because it isn't"
+                " a valid value" % value
+            ) from None
+        else:
+            if _value <= 0:
+                raise ValueError(
+                    "Could not deposit the value '%s'. "
+                    "Only positive values are accepted" % _value
+                )
+            self.balance = self.balance + _value

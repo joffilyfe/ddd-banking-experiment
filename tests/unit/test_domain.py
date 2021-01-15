@@ -56,3 +56,32 @@ class TestAccountDomain(unittest.TestCase):
         self.assertFalse(self.account.active)
         self.account.unblock()
         self.assertTrue(self.account.active)
+
+    def test_should_be_possible_to_deposit_a_value(self):
+        self.account.deposit("10.00")
+        self.assertEqual(Decimal("10.00"), self.account.balance)
+
+    def test_should_be_possible_to_deposit_cents_to_account(self):
+        self.account.deposit("0.15")
+
+    def test_should_raise_a_exception_if_the_deposit_value_is_lower_or_equal_to_zero(
+        self,
+    ):
+        with self.assertRaisesRegex(
+            ValueError,
+            "Could not deposit the value '-1'. Only positive values are accepted",
+        ):
+            self.account.deposit(-1)
+
+        with self.assertRaisesRegex(
+            ValueError,
+            "Could not deposit the value '0'. Only positive values are accepted",
+        ):
+            self.account.deposit(0)
+
+    def test_should_not_be_possible_to_deposit_a_non_numerical_value(self):
+        with self.assertRaisesRegex(
+            ValueError,
+            "^Could not deposit the amount '@' because it isn't a valid value$",
+        ):
+            self.account.deposit("@")

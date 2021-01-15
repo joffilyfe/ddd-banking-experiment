@@ -110,3 +110,64 @@ def start_mappers(people, accounts, transactions):
             "account": relationship(accounts_mapper, back_populates="transactions")
         },
     )
+
+
+class SqlSessionFactory:
+    """Creates a session factory object to be used during an transaction"""
+
+    def __init__(self, engine):
+        self.engine = engine
+
+    def __call__(self):
+        return sessionmaker(bind=self.engine)()
+
+
+class SqlUnitOfWork(interfaces.AbstractUnitOfWork):
+    """Represents a unit of work used during the interaction with database"""
+
+    @notmutate
+    def __init__(self, session_factory: SqlSessionFactory):
+        self.session_factory = session_factory
+
+    @notmutate
+    def __enter__(self):
+        self.session = self.session_factory()
+        return super().__enter__()
+
+    def __exit__(self, exc_type, exc, exc_tb) -> None:
+
+        if exc_type:
+            self.rollback()
+            self.session.close()  # pylint: disable=no-member
+            LOGGER.exception(
+                "Some exception was raised during __exit__ invocation."
+                " Rolling back the transaction."
+            )
+        else:
+            try:
+                self.commit()
+            except Exception:
+                self.rollback()
+                self.session.close()  # pylint: disable=no-member
+                LOGGER.exception(
+                    "Some exception was raised during commit()"
+                    " Rolling back the transaction."
+                )
+
+    def rollback(self):
+        self.session.rollback()  # pylint: disable=no-member
+
+    def commit(self):
+        self.session.commit()  # pylint: disable=no-member
+
+    @property
+    def accounts(self) -> repositories.AccountRepository:
+        return repositories.AccountRepository(self.session)
+
+    @property
+    def transactions(self) -> repositories.TransactionRepository:
+        return repositories.TransactionRepository(self.session)
+
+    @property
+    def people(self) -> repositories.PersonRepository:
+        return repositories.PersonRepository(self.session)

@@ -1,3 +1,4 @@
+import enum
 from decimal import Decimal
 from decimal import InvalidOperation as DecimalException
 
@@ -21,6 +22,11 @@ class Person:
         return Person(id=id, name=name, cpf=cpf, born_at=born_at)
 
 
+class TransactionTypeEnum(str, enum.Enum):
+    deposit = "deposit"
+    withdraw = "withdraw"
+
+
 @dataclass
 class Transaction:
     """Responsible to hold informations about a account transaction"""
@@ -28,12 +34,13 @@ class Transaction:
     id: int = None
     account_id: int = None
     value: Decimal = None
+    type: TransactionTypeEnum = None
     created_at: datetime = None
 
     @staticmethod
-    def new(id=None, account_id=None, value=None, created_at=None):
+    def new(id=None, account_id=None, value=None, type=None, created_at=None):
         return Transaction(
-            id=id, account_id=account_id, value=value, created_at=created_at
+            id=id, account_id=account_id, value=value, type=type, created_at=created_at
         )
 
 

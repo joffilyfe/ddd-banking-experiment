@@ -3,6 +3,7 @@ from decimal import Decimal
 from random import randint
 
 from banking.adapters import metadata, sqlalchemy_schema, start_mappers
+from banking.domain import Person
 from sqlalchemy import TypeDecorator, Integer, create_engine
 from sqlalchemy.orm import clear_mappers, sessionmaker
 
@@ -59,3 +60,21 @@ def create_in_memory_engine():
     engine = create_engine("sqlite:///")
     metadata.create_all(engine)
     return engine
+
+
+def create_person(id=randint(1, 2000)):
+    cpf = (
+        randint(100, 200),
+        randint(200, 300),
+        randint(300, 400),
+        randint(10, 99),
+    )
+
+    person = Person.new(
+        id=id,
+        name="Testing",
+        cpf="%s.%s.%s-%s" % cpf,
+        born_at=date.today(),
+    )
+
+    return person

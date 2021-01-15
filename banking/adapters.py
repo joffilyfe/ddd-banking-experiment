@@ -13,11 +13,12 @@ from sqlalchemy import (
     Numeric,
     String,
     Table,
-    TypeDecorator,
+    Enum,
 )
 from sqlalchemy.orm import mapper, relationship, sessionmaker
 
 from banking import domain, interfaces, repositories
+from banking.domain import TransactionTypeEnum
 
 LOGGER = logging.getLogger(__name__)
 metadata = MetaData()
@@ -46,6 +47,15 @@ def sqlalchemy_schema(Numeric=Numeric):
         Column("idTransacao", Integer, key="id", primary_key=True, autoincrement=True),
         Column("idConta", ForeignKey("accounts.id"), key="account_id", nullable=False),
         Column("valor", Numeric(10, 2), key="value", nullable=False),
+        Column(
+            "tipo",
+            Enum(
+                TransactionTypeEnum,
+                values_callable=lambda enum: [e.value for e in enum],
+            ),
+            key="type",
+            nullable=False,
+        ),
         Column(
             "dataCriacao",
             DateTime,

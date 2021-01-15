@@ -97,3 +97,35 @@ class Account:
                     "Only positive values are accepted" % _value
                 )
             self.balance = self.balance + _value
+
+    def withdraw(self, value: str) -> None:
+        """Withdraw an amount from the account balance.
+
+        It does some minimal validations related to the business model like the
+        value interfaces or amount of money withdrawn. Only business model
+        validations should be puted here."""
+
+        try:
+            _value = Decimal(str(value))
+        except (ValueError, DecimalException):
+            raise ValueError(
+                "Could not withdraw the amount '%s' because it isn't"
+                " a valid value" % value
+            ) from None
+
+        new_balance = self.balance - _value
+
+        if new_balance < 0:
+            raise ValueError(
+                "The account balance is insufficient "
+                "to withdraw the '%s' ammount" % _value
+            ) from None
+        elif _value == 0:
+            raise ValueError("Could not withdraw an amout of zero from the account")
+        elif _value < 0:
+            raise ValueError(
+                "Could not withdraw the value '%s'. Only positive "
+                "values are accepted" % _value
+            )
+        else:
+            self.balance = new_balance

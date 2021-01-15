@@ -85,3 +85,38 @@ class TestAccountDomain(unittest.TestCase):
             "^Could not deposit the amount '@' because it isn't a valid value$",
         ):
             self.account.deposit("@")
+
+    def test_should_be_possible_to_withdraw_a_value(self):
+        self.account.deposit("10.00")
+        self.account.withdraw("8")
+        self.assertEqual(Decimal("2.00"), self.account.balance)
+
+    def test_should_not_be_possible_to_withdraw_a_negative_value(self):
+        self.account.deposit("10.00")
+
+        with self.assertRaisesRegex(
+            ValueError,
+            "^Could not withdraw the value '-8'. Only positive values are accepted$",
+        ):
+            self.account.withdraw("-8")
+
+        self.assertEqual(self.account.balance, 10)
+
+    def test_should_not_be_possible_to_withdraw_a_non_numerical_value(self):
+        with self.assertRaisesRegex(ValueError, "^Could not withdraw"):
+            self.account.withdraw("#")
+
+    def test_should_raise_an_exception_if_the_withdraw_amount_is_bigger_then_the_balance(
+        self,
+    ):
+        with self.assertRaisesRegex(
+            ValueError,
+            "^The account balance is insufficient to withdraw the '100.00' ammount$",
+        ):
+            self.account.withdraw("100.00")
+
+    def test_should_raise_a_exception_if_the_withdraw_amount_is_zero(self):
+        with self.assertRaisesRegex(
+            ValueError, "Could not withdraw an amout of zero from the account"
+        ):
+            self.account.withdraw("0")

@@ -78,6 +78,14 @@ class Account:
         """Set the active status as Talse"""
         self.active = False
 
+    def add_transaction(self, t: Transaction) -> None:
+        """Adds a transaction to the transactions list"""
+
+        if not isinstance(t, Transaction):
+            raise TypeError("Could not add the object '%s' to the transaction list" % t)
+
+        self.transactions.append(t)
+
     def deposit(self, value: str) -> None:
         """Adds an amout to the account balance.
         It does some minimal validations related to business model like the

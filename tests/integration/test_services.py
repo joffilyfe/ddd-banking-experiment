@@ -113,3 +113,21 @@ class TestAccountWithddrawValueService(DatabaseInMemoryMixin, unittest.TestCase)
 
         for transaction in account.transactions:
             self.assertEqual(transaction.type, "withdraw")
+
+
+class TestAccountBlockService(DatabaseInMemoryMixin, unittest.TestCase):
+    def setUp(self):
+        super().setUp()
+        self.unit_of_work = SqlUnitOfWork(self.session_factory)
+
+        with self.unit_of_work as uow:
+            account = Account.new()
+            account.id = 1
+            account.person_id = 1
+            uow.accounts.add(account)
+
+        self.command = get_commands(self.unit_of_work)["account_block"]
+
+    def test_should_set_an_account_active_status_as_false(self):
+        account = self.command(1)
+        self.assertEqual(account.active, False)

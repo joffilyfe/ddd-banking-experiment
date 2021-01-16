@@ -73,10 +73,23 @@ class AccountWithddrawValueCommand(Command):
         return account
 
 
+class AccountBlockCommand(Command):
+    """Fetch an account and sets it as blocked"""
+
+    def __call__(self, id: int):
+        with self.UnitOfWork as uow:
+            account = uow.accounts.fetch(id)
+            account.block()
+            uow.accounts.add(account)
+
+        return account
+
+
 def get_commands(uow: AbstractUnitOfWork) -> dict:
     return {
         "account_register": AccountRegisterCommand(uow),
         "account_deposit": AccountDepositValueCommand(uow),
         "account_fetch": AccountFetchCommand(uow),
         "account_withdraw": AccountWithddrawValueCommand(uow),
+        "account_block": AccountBlockCommand(uow),
     }

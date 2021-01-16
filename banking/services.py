@@ -55,9 +55,28 @@ class AccountFetchCommand(Command):
         return account
 
 
+class AccountWithddrawValueCommand(Command):
+    """Obtain an account using the account id then withdraw
+    a value from the account"""
+
+    def __call__(self, id: int, value: Decimal):
+        with self.UnitOfWork as uow:
+            account = uow.accounts.fetch(id)
+            account.withdraw(value)
+            account.add_transaction(
+                domain.Transaction.new(
+                    value=value,
+                    type=domain.TransactionTypeEnum.withdraw,
+                )
+            )
+
+        return account
+
+
 def get_commands(uow: AbstractUnitOfWork) -> dict:
     return {
         "account_register": AccountRegisterCommand(uow),
         "account_deposit": AccountDepositValueCommand(uow),
         "account_fetch": AccountFetchCommand(uow),
+        "account_withdraw": AccountWithddrawValueCommand(uow),
     }

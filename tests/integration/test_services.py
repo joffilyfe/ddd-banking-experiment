@@ -81,3 +81,35 @@ class TestAccountFetchService(DatabaseInMemoryMixin, unittest.TestCase):
     def test_should_raise_does_not_exist_exception_if_an_account_was_not_found(self):
         with self.assertRaisesRegex(exceptions.DoesNotExist, "^Does not exist$"):
             self.command(2)
+
+
+class TestAccountWithddrawValueService(DatabaseInMemoryMixin, unittest.TestCase):
+    def setUp(self):
+        super().setUp()
+        self.unit_of_work = SqlUnitOfWork(self.session_factory)
+
+        with self.unit_of_work as uow:
+            account = Account.new()
+            account.id = 1
+            account.person_id = 1
+            account.balance = Decimal("100.00")
+            uow.accounts.add(account)
+
+        self.command = get_commands(self.unit_of_work)["account_withdraw"]
+
+    def test_should_be_possible_withdraw_10_units_from_an_account(self):
+        account = self.command(1, "11.01")
+        self.assertEqual(account.balance, Decimal("88.99"))
+
+    def test_when_an_withdraw_were_made_it_should_produce_an_transaction(self):
+        account = self.command(1, "50.00")
+        self.assertEqual(len(account.transactions), 1)
+
+    def test_transactions_should_have_the_withdraw_type_when_their_are_made_by_this_command(
+        self,
+    ):
+        self.command(1, "50.00")
+        account = self.command(1, "50.00")
+
+        for transaction in account.transactions:
+            self.assertEqual(transaction.type, "withdraw")

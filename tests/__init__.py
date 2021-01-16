@@ -34,24 +34,20 @@ class SQLiteNumeric(TypeDecorator):
 
 class DatabaseInMemoryMixin:
     """Provides the basic infrastructure to test the database dependent
-    behaviors. This mixin set up an global session that is permanant over
-    the all tests contained in the test class.
+    behaviors. This mixin set local session that is volatile and will be
+    purged after another test starts.
 
-    Keep in your mind: the database is persistente in the
-    class test."""
+    Its necessary to call the super().setUp() if you override the setUp
+    method."""
 
-    @classmethod
-    def setUpClass(self):
-        schema = sqlalchemy_schema(Numeric=SQLiteNumeric)
-        engine = create_in_memory_engine()
-        start_mappers(**schema)
-        self.session_factory = sessionmaker(bind=engine)
-        self.session = self.session_factory()
-
-    @classmethod
-    def tearDownClass(self):
+    def setUp(self):
         metadata.clear()
         clear_mappers()
+        self.schema = sqlalchemy_schema(Numeric=SQLiteNumeric)
+        self.engine = create_in_memory_engine()
+        start_mappers(**self.schema)
+        self.session_factory = sessionmaker(bind=self.engine)
+        self.session = self.session_factory()
 
 
 def create_in_memory_engine():

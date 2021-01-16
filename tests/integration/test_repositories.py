@@ -24,6 +24,7 @@ class TestPersonRepository(DatabaseInMemoryMixin, unittest.TestCase):
     in its instance."""
 
     def setUp(self):
+        super().setUp()
         self.repository = PersonRepository(self.session)
 
     def tearDown(self):
@@ -66,6 +67,7 @@ class TestAccountRepository(DatabaseInMemoryMixin, unittest.TestCase):
 
 class TestTransactionRepository(DatabaseInMemoryMixin, unittest.TestCase):
     def setUp(self):
+        super().setUp()
         self.repository = TransactionRepository(self.session)
         self.account = create_account(account_id=randint(10, 1000))
         self.session.add(self.account)

@@ -11,6 +11,7 @@ from tests import DatabaseInMemoryMixin, create_person
 
 class TestAccountCreateService(DatabaseInMemoryMixin, unittest.TestCase):
     def setUp(self):
+        super().setUp()
         self.unit_of_work = SqlUnitOfWork(self.session_factory)
         self.command = get_commands(self.unit_of_work)["account_register"]
         self.account_id = randint(1, 1000)
@@ -29,6 +30,7 @@ class TestAccountCreateService(DatabaseInMemoryMixin, unittest.TestCase):
 
 class TestAccountDepositValueService(DatabaseInMemoryMixin, unittest.TestCase):
     def setUp(self):
+        super().setUp()
         self.unit_of_work = SqlUnitOfWork(self.session_factory)
         self.command = get_commands(self.unit_of_work)["account_deposit"]
         self.person_id = randint(1, 1000)
@@ -61,6 +63,7 @@ class TestAccountDepositValueService(DatabaseInMemoryMixin, unittest.TestCase):
 
 class TestAccountFetchService(DatabaseInMemoryMixin, unittest.TestCase):
     def setUp(self):
+        super().setUp()
         self.unit_of_work = SqlUnitOfWork(self.session_factory)
 
         with self.unit_of_work as uow:

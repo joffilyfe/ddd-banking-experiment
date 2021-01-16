@@ -1,6 +1,8 @@
 import unittest
+from datetime import datetime, timedelta
 from random import randint
 from decimal import Decimal
+from time import sleep
 
 from banking import exceptions
 from banking.adapters import SqlUnitOfWork
@@ -131,3 +133,45 @@ class TestAccountBlockService(DatabaseInMemoryMixin, unittest.TestCase):
     def test_should_set_an_account_active_status_as_false(self):
         account = self.command(1)
         self.assertEqual(account.active, False)
+
+
+class TestAccountTransactionsDetailService(DatabaseInMemoryMixin, unittest.TestCase):
+    def setUp(self):
+        super().setUp()
+        self.unit_of_work = SqlUnitOfWork(self.session_factory)
+        self.withdraw_command = get_commands(self.unit_of_work)["account_withdraw"]
+
+        with self.unit_of_work as uow:
+            account = Account.new()
+            account.id = 1
+            account.balance = Decimal("500")
+            account.person_id = 1
+            uow.accounts.add(account)
+
+        self.command = get_commands(self.unit_of_work)["account_transactions"]
+
+    def test_should_return_the_transactions_from_one_second_ago(self):
+        self.withdraw_command(1, "100")
+        sleep(1)
+        self.withdraw_command(1, "100")
+        transctions = self.command(1, datetime.utcnow() - timedelta(seconds=1), None)
+        self.assertEqual(len(transctions), 1)
+
+    def test_should_return_zero_transactions_when_the_since_parameter_starts_after_the_last_registered_transaction(
+        self,
+    ):
+        self.withdraw_command(1, "100")
+        self.withdraw_command(1, "100")
+        transctions = self.command(1, datetime.utcnow() + timedelta(seconds=10), None)
+        self.assertEqual(len(transctions), 0)
+
+    def test_should_return_zero_transactions_if_the_until_parameter_is_defined_before_the_first_registered_transaction(
+        self,
+    ):
+        self.withdraw_command(1, "100")
+        self.withdraw_command(1, "100")
+        since = datetime.utcnow() - timedelta(minutes=2)
+        until = datetime.utcnow() - timedelta(minutes=1)
+
+        transctions = self.command(1, since, until)
+        self.assertEqual(len(transctions), 0)

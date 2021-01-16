@@ -1,3 +1,4 @@
+from datetime import datetime
 from decimal import Decimal
 
 from banking import domain
@@ -84,6 +85,17 @@ class AccountBlockCommand(Command):
 
         return account
 
+class AccountTransactionsDetailCommand(Command):
+    """Retrieves the account transaction details by date interval"""
+
+    def __call__(self, account_id: int, since: datetime, until: datetime):
+        with self.UnitOfWork as uow:
+            transactions = uow.transactions.filter_by_interval(
+                account_id=account_id, since=since, until=until
+            )
+
+        return transactions
+
 
 def get_commands(uow: AbstractUnitOfWork) -> dict:
     return {
@@ -92,4 +104,5 @@ def get_commands(uow: AbstractUnitOfWork) -> dict:
         "account_fetch": AccountFetchCommand(uow),
         "account_withdraw": AccountWithddrawValueCommand(uow),
         "account_block": AccountBlockCommand(uow),
+        "account_transactions": AccountTransactionsDetailCommand(uow),
     }

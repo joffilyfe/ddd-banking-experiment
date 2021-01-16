@@ -57,3 +57,24 @@ class TestAccountDepositValueService(DatabaseInMemoryMixin, unittest.TestCase):
             "Could not deposit the amount '@' because it isn't a valid value",
         ):
             self.command(id=self.account.id, value="@")
+
+
+class TestAccountFetchService(DatabaseInMemoryMixin, unittest.TestCase):
+    def setUp(self):
+        self.unit_of_work = SqlUnitOfWork(self.session_factory)
+
+        with self.unit_of_work as uow:
+            account = Account.new()
+            account.id = 1
+            account.person_id = 1
+            uow.accounts.add(account)
+
+        self.command = get_commands(self.unit_of_work)["account_fetch"]
+
+    def test_should_be_possible_obtain_an_existing_account_by_id(self):
+        account = self.command(1)
+        self.assertIsNotNone(account)
+
+    def test_should_raise_does_not_exist_exception_if_an_account_was_not_found(self):
+        with self.assertRaisesRegex(exceptions.DoesNotExist, "^Does not exist$"):
+            self.command(2)

@@ -45,8 +45,19 @@ class AccountDepositValueCommand(Command):
         return account
 
 
+class AccountFetchCommand(Command):
+    """Obtain an account using the account id"""
+
+    def __call__(self, id: int):
+        with self.UnitOfWork as uow:
+            account = uow.accounts.fetch(id)
+
+        return account
+
+
 def get_commands(uow: AbstractUnitOfWork) -> dict:
     return {
         "account_register": AccountRegisterCommand(uow),
         "account_deposit": AccountDepositValueCommand(uow),
+        "account_fetch": AccountFetchCommand(uow),
     }

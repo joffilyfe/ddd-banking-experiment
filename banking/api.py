@@ -104,6 +104,12 @@ class AccountBalanceSchema(OrmMode):
     balance: Decimal
 
 
+class DepositRequestSchema(BaseModel):
+    """Schema used to receive a deposit value from body request"""
+
+    value: Decimal
+
+
 @app.post(
     "/accounts",
     response_model=AccountReadSchema,
@@ -142,3 +148,27 @@ def account_balance(id: int, uow=Depends(get_uow_instance)):
         raise HTTPException(status_code=404, detail="Account not found")
     else:
         return account
+
+
+@app.patch(
+    "/accounts/{id}/deposit",
+    response_model=None,
+    responses={
+        404: {"model": Detail},
+        205: {
+            "content": None,
+            "description": "The amount was deposited to the account",
+        },
+    },
+    status_code=205,
+)
+def account_deposit(id: int, data: DepositRequestSchema, uow=Depends(get_uow_instance)):
+    """Deposit some amount to the account"""
+    try:
+        get_commands(uow)["account_deposit"](id, **data.dict())
+    except exceptions.DoesNotExist:
+        raise HTTPException(status_code=404, detail="Account not found")
+    except ValueError as e:
+        raise HTTPException(status_code=422, detail=str(e))
+    else:
+        return Response(content=None, status_code=205)

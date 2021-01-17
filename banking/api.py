@@ -3,7 +3,11 @@ from decimal import Decimal
 from typing import List, Optional
 
 from fastapi import Depends, FastAPI, HTTPException, Response
-from pydantic import BaseModel, BaseSettings  # pylint: disable=no-name-in-module
+from pydantic import (
+    BaseModel,
+    BaseSettings,
+    constr,
+)  # pylint: disable=no-name-in-module
 from sqlalchemy import create_engine
 
 from banking import exceptions
@@ -88,6 +92,22 @@ class Detail(BaseModel):
     detail: str
 
 
+class PersonReadSchema(OrmMode):
+    """Schema used to read a person"""
+
+    id: int
+    name: str
+    cpf: str
+
+
+class PersonCreateSchema(BaseModel):
+    """Schema used to create a person"""
+
+    name: str
+    cpf: constr(regex="^[0-9]{3}\.[0-9]{3}\.[0-9]{3}\-[0-9]{2}$")
+    born_at: datetime
+
+
 class AccountReadSchema(OrmMode):
     """Schema used to shows an account public information"""
 
@@ -128,6 +148,27 @@ class AccountTransactionsSchema(OrmMode):
     value: Decimal
     type: TransactionTypeEnum
     created_at: datetime
+
+
+@app.post(
+    "/people",
+    response_model=PersonReadSchema,
+    responses={
+        201: {
+            "description": "Person created successfully",
+        },
+    },
+    status_code=201,
+    tags=["people"]
+)
+def person_register(data: PersonCreateSchema, uow=Depends(get_uow_instance)):
+    """Register a person"""
+    try:
+        person = get_commands(uow)["person_register"](**data.dict())
+    except ValueError as e:
+        raise HTTPException(status_code=422, detail=str(e))
+    else:
+        return person
 
 
 @app.post(

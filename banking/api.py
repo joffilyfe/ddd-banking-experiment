@@ -201,3 +201,27 @@ def account_withdraw(
         raise HTTPException(status_code=422, detail=str(e))
     else:
         return Response(content=None, status_code=205)
+
+
+@app.patch(
+    "/accounts/{id}/block",
+    response_model=AccountReadSchema,
+    responses={
+        404: {"model": Detail},
+        205: {
+            "content": None,
+            "description": "Set the status account as 'inactive'",
+        },
+    },
+    status_code=205,
+)
+def account_block(id: int, uow=Depends(get_uow_instance)):
+    """Set the status account as 'inactive'"""
+    try:
+        account = get_commands(uow)["account_block"](id)
+    except exceptions.DoesNotExist:
+        raise HTTPException(status_code=404, detail="Account not found")
+    except ValueError as e:
+        raise HTTPException(status_code=422, detail=str(e))
+    else:
+        return account

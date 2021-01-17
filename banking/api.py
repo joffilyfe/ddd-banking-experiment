@@ -110,6 +110,12 @@ class DepositRequestSchema(BaseModel):
     value: Decimal
 
 
+class WithdrawRequestSchema(BaseModel):
+    """Schema used to receive a withdraw value from body request"""
+
+    value: Decimal
+
+
 @app.post(
     "/accounts",
     response_model=AccountReadSchema,
@@ -166,6 +172,29 @@ def account_deposit(id: int, data: DepositRequestSchema, uow=Depends(get_uow_ins
     """Deposit some amount to the account"""
     try:
         get_commands(uow)["account_deposit"](id, **data.dict())
+    except exceptions.DoesNotExist:
+        raise HTTPException(status_code=404, detail="Account not found")
+    except ValueError as e:
+        raise HTTPException(status_code=422, detail=str(e))
+    else:
+        return Response(content=None, status_code=205)
+
+
+@app.patch(
+    "/accounts/{id}/withdraw",
+    response_model=None,
+    responses={
+        404: {"model": Detail},
+        205: {"content": None, "description": "The amount was withdrawn from account"},
+    },
+    status_code=205,
+)
+def account_withdraw(
+    id: int, data: WithdrawRequestSchema, uow=Depends(get_uow_instance)
+):
+    """Withdraw some amount from an account"""
+    try:
+        get_commands(uow)["account_withdraw"](id, **data.dict())
     except exceptions.DoesNotExist:
         raise HTTPException(status_code=404, detail="Account not found")
     except ValueError as e:

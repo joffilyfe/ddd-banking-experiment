@@ -175,3 +175,20 @@ class TestAccountTransactionsDetailService(DatabaseInMemoryMixin, unittest.TestC
 
         transctions = self.command(1, since, until)
         self.assertEqual(len(transctions), 0)
+
+
+class TestPersonRegisterService(DatabaseInMemoryMixin, unittest.TestCase):
+    def setUp(self):
+        super().setUp()
+        self.unit_of_work = SqlUnitOfWork(self.session_factory)
+        self.command = get_commands(self.unit_of_work)["person_register"]
+
+    def test_should_be_a_person_registered_in_the_uow_session(self):
+        account = self.command(
+            name="Testing", cpf="111.111.111-11", born_at=datetime.now()
+        )
+
+        with self.unit_of_work as uow:
+            people = uow.session.execute("SELECT * FROM people").fetchall()
+
+        self.assertEqual(1, len(people))

@@ -14,6 +14,21 @@ class Command:
         self.UnitOfWork = UnitOfWork
 
 
+class PersonRegisterCommand(Command):
+    """Register a person"""
+
+    def __call__(self, name, cpf, born_at):
+        with self.UnitOfWork as uow:
+            person = domain.Person.new(
+                name=name,
+                cpf=cpf,
+                born_at=born_at,
+            )
+            uow.people.add(person)
+
+        return person
+
+
 class AccountRegisterCommand(Command):
     """Register an user"""
 
@@ -85,6 +100,7 @@ class AccountBlockCommand(Command):
 
         return account
 
+
 class AccountTransactionsDetailCommand(Command):
     """Retrieves the account transaction details by date interval"""
 
@@ -99,6 +115,7 @@ class AccountTransactionsDetailCommand(Command):
 
 def get_commands(uow: AbstractUnitOfWork) -> dict:
     return {
+        "person_register": PersonRegisterCommand(uow),
         "account_register": AccountRegisterCommand(uow),
         "account_deposit": AccountDepositValueCommand(uow),
         "account_fetch": AccountFetchCommand(uow),

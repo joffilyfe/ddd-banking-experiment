@@ -1,5 +1,6 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from decimal import Decimal
+from typing import List, Optional
 
 from fastapi import Depends, FastAPI, HTTPException, Response
 from pydantic import BaseModel, BaseSettings  # pylint: disable=no-name-in-module
@@ -13,7 +14,12 @@ from banking.adapters import (
     sqlalchemy_schema,
     start_mappers,
 )
+from banking.domain import TransactionTypeEnum
 from banking.services import get_commands
+
+
+def datetime_last_30_days() -> datetime:
+    return datetime.now() - timedelta(days=30)
 
 
 class Settings(BaseSettings):
@@ -114,6 +120,14 @@ class WithdrawRequestSchema(BaseModel):
     """Schema used to receive a withdraw value from body request"""
 
     value: Decimal
+
+
+class AccountTransactionsSchema(OrmMode):
+    """Schema used to shows a transaction information"""
+
+    value: Decimal
+    type: TransactionTypeEnum
+    created_at: datetime
 
 
 @app.post(
@@ -225,3 +239,26 @@ def account_block(id: int, uow=Depends(get_uow_instance)):
         raise HTTPException(status_code=422, detail=str(e))
     else:
         return account
+
+
+@app.get(
+    "/accounts/{id}/transactions",
+    response_model=List[AccountTransactionsSchema],
+    responses={
+        404: {"model": Detail},
+    },
+)
+def account_transactions(
+    id: int,
+    since: Optional[datetime] = datetime_last_30_days(),
+    until: Optional[datetime] = None,
+    uow=Depends(get_uow_instance),
+):
+    command = get_commands(uow)["account_transactions"]
+
+    try:
+        transactions = command(id, since, until)
+    except exceptions.DoesNotExist:
+        raise HTTPException(status_code=404, detail="Account not found")
+    else:
+        return transactions

@@ -1,0 +1,23 @@
+version: '2'
+
+services:
+    db:
+        image: postgres:13.1
+        restart: always
+        environment:
+            POSTGRES_DB: banking
+            POSTGRES_USER: banking
+            POSTGRES_PASSWORD: pgpassword
+
+    api:
+        build:
+            context: .
+            dockerfile: ./Dockerfile
+        user: nobody
+        restart: always
+        depends_on:
+            - db
+        ports:
+            - "8000:8000"
+        environment:
+            SQLALCHEMY_DATABASE_URL: postgresql://banking:pgpassword@db:5432/banking

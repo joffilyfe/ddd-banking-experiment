@@ -76,6 +76,12 @@ class OrmMode(BaseModel):
         orm_mode = True
 
 
+class Detail(BaseModel):
+    """Detail message used when some exception occours"""
+
+    detail: str
+
+
 class AccountReadSchema(OrmMode):
     """Schema used to shows an account public information"""
 
@@ -90,6 +96,12 @@ class AccountCreateSchema(BaseModel):
 
     person_id: int
     type_id: int
+
+
+class AccountBalanceSchema(OrmMode):
+    """Schema used to shows an account balance"""
+
+    balance: Decimal
 
 
 @app.post(
@@ -111,5 +123,22 @@ def account_register(user: AccountCreateSchema, uow=Depends(get_uow_instance)):
         raise HTTPException(status_code=404, detail="Person not found")
     except ValueError as e:
         raise HTTPException(status_code=422, detail=str(e))
+    else:
+        return account
+
+
+@app.get(
+    "/accounts/{id}/balance",
+    response_model=AccountBalanceSchema,
+    responses={
+        404: {"model": Detail},
+    },
+)
+def account_balance(id: int, uow=Depends(get_uow_instance)):
+    """Retrieves an existing account by id and show its balance"""
+    try:
+        account = get_commands(uow)["account_fetch"](id)
+    except exceptions.DoesNotExist:
+        raise HTTPException(status_code=404, detail="Account not found")
     else:
         return account

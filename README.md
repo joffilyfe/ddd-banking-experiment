@@ -58,3 +58,8 @@ Outra facilidade que o `FastAPI` nos traz é a geração automática de document
 Você deve ver algo semelhante a imagem abaixo:
 
 ![api documentation](docs/api-swagger.png)
+
+
+### Documentação
+
+Para mais informações acesse a pasta [docs](./docs/README.md).
